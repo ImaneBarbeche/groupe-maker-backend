@@ -36,7 +36,7 @@ public class UtilisateurController {
         return utilisateurRepository.save(utilisateur);
     }
 
-    @GetMapping("/utilisateurs/{id}")
+    @GetMapping("/{id}")
     public Utilisateur getUtilisateurById(@PathVariable Long id) {
         return utilisateurRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur non trouvé"));
@@ -50,7 +50,7 @@ public class UtilisateurController {
      * Sinon, on retourne une erreur
      * 
      */
-    @PutMapping("/utilisateurs/{id}")
+    @PutMapping("/{id}")
     public Utilisateur putUtilisateurById(@PathVariable Long id, @RequestBody Utilisateur utilisateur) {
         Utilisateur existing = utilisateurRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur non trouvé"));
@@ -70,7 +70,7 @@ public class UtilisateurController {
      * réponse.
      * Sinon, la méthode retourne une erreur
      */
-    @DeleteMapping("/utilisateurs/{id}")
+    @DeleteMapping("/{id}")
     public Utilisateur deleteUtilisateurById(@PathVariable Long id) {
         Utilisateur existing = utilisateurRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur non trouvé"));
