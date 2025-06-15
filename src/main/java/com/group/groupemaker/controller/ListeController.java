@@ -15,9 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
 import com.group.groupemaker.model.Liste;
-import com.group.groupemaker.model.Utilisateur;
 import com.group.groupemaker.repository.ListeRepository;
-import com.group.groupemaker.repository.UtilisateurRepository;
 import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController // Gérer les requêtes REST, renvoyer du JSON

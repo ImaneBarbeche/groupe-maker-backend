@@ -1,6 +1,5 @@
 package com.group.groupemaker.model;
 
-import java.time.LocalDateTime;
 
 import jakarta.persistence.*; // lie la classe à une table en base de données
 
