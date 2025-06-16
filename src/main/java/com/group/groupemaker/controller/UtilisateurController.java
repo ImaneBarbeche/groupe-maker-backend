@@ -1,5 +1,6 @@
 package com.group.groupemaker.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -7,12 +8,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.group.groupemaker.model.LoginRequest;
@@ -34,7 +37,7 @@ public class UtilisateurController {
             JwtUtil jwtUtil) {
         this.utilisateurRepository = utilisateurRepository;
         this.passwordEncoder = passwordEncoder;
-        this.jwtUtil = new JwtUtil();
+        this.jwtUtil = jwtUtil; // on garde la version injectée par Spring
     }
 
     @GetMapping // On répond à une requête GET avec la liste des utilisateurs
@@ -51,6 +54,7 @@ public class UtilisateurController {
         // Optionnel : tu peux aussi fixer le rôle, la date de création, etc.
         utilisateur.setRole("USER");
         utilisateur.setActive(true); // temporaire (on simulera l'activation)
+        utilisateur.setDateCreation(LocalDateTime.now());
 
         return utilisateurRepository.save(utilisateur);
     }
@@ -82,46 +86,94 @@ public class UtilisateurController {
         return ResponseEntity.ok(token); // On retourne une réponse HTTP 200 OK contenant le token en texte brut
     }
 
+    /**
+     * Renvoie un utilisateur par son id uniquement s’il s’agit de l’utilisateur
+     * connecté.
+     * Protège l’accès aux données personnelles d’un autre utilisateur.
+     */
     @GetMapping("/{id}")
     public Utilisateur getUtilisateurById(@PathVariable Long id) {
-        return utilisateurRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur non trouvé"));
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Utilisateur connectedUser = utilisateurRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur inconnu"));
+
+        if (!connectedUser.getId().equals(id)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Accès interdit à un autre profil");
+        }
+
+        return connectedUser;
     }
 
     /**
-     * 
-     * Met à jour un utilisateur existant en base à partir de son id.
-     * Si l'utilisateur est trouvé, on met à jour ses champs avec les nouvelles
-     * données reçues.
-     * Sinon, on retourne une erreur
-     * 
+     * Met à jour les infos de l’utilisateur connecté uniquement.
+     * Empêche la modification d’un autre compte.
      */
     @PutMapping("/{id}")
     public Utilisateur putUtilisateurById(@PathVariable Long id, @RequestBody Utilisateur utilisateur) {
-        Utilisateur existing = utilisateurRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur non trouvé"));
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Utilisateur connectedUser = utilisateurRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur inconnu"));
 
-        existing.setPrenom(utilisateur.getPrenom());
-        existing.setNom(utilisateur.getNom());
-        existing.setEmail(utilisateur.getEmail());
-        existing.setMotDePasse(utilisateur.getMotDePasse());
+        if (!connectedUser.getId().equals(id)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Accès interdit à un autre profil");
+        }
 
-        return utilisateurRepository.save(existing);
+        connectedUser.setPrenom(utilisateur.getPrenom());
+        connectedUser.setNom(utilisateur.getNom());
+        connectedUser.setEmail(utilisateur.getEmail());
+        connectedUser.setMotDePasse(utilisateur.getMotDePasse());
 
+        return utilisateurRepository.save(connectedUser);
     }
 
     /**
-     * Supprime un utilisateur à partir de son identifiant.
-     * Si l'utilisateur est trouvé, il est supprimé de la base et retourné en
-     * réponse.
-     * Sinon, la méthode retourne une erreur
+     * Supprime le compte de l’utilisateur connecté uniquement.
+     * Refuse la suppression d’un autre utilisateur.
      */
     @DeleteMapping("/{id}")
     public Utilisateur deleteUtilisateurById(@PathVariable Long id) {
-        Utilisateur existing = utilisateurRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur non trouvé"));
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Utilisateur connectedUser = utilisateurRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur inconnu"));
+
+        if (!connectedUser.getId().equals(id)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Accès interdit à un autre profil");
+        }
+
         utilisateurRepository.deleteById(id);
-        return existing;
+        return connectedUser;
+    }
+
+    /**
+     * Renvoie le profil de l'utilisateur connecté à partir du token JWT.
+     * Permet d'identifier l'utilisateur sans passer d'ID explicite.
+     */
+    @GetMapping("/me") // Déclare une route accessible en GET, à l’URL /utilisateurs/me.
+    public Utilisateur getCurrentUser(@RequestHeader("Authorization") String authHeader) { // Cette méthode attend que
+                                                                                           // le client envoie un header
+                                                                                           // HTTP nommé Authorization
+
+        // Si l’en-tête est manquant ou ne commence pas par "Bearer ", on renvoie une
+        // erreur 401 Unauthorized.
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token manquant ou invalide");
+        }
+
+        String token = authHeader.substring(7); // On enlève "Bearer " pour ne garder que le token brut
+        String email = jwtUtil.extractEmail(token); // On utilise JwtUtil pour extraire l’email qui a été encodé dans le
+                                                    // token lors de la connexion.
+
+        // Si le token n’est pas décodable (expiré, modifié, etc.), alors email == null
+        // → on bloque la requête.
+        if (email == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token invalide");
+        }
+
+        // On récupère l’utilisateur en base de données à partir de l’email trouvé dans
+        // le token.
+        // Sinon, on renvoie une erreur 404
+        return utilisateurRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur introuvable"));
     }
 
 }

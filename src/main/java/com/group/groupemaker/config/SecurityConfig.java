@@ -33,8 +33,9 @@ public class SecurityConfig {
         http
                 .csrf().disable()
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/utilisateurs/register", "/utilisateurs/login").permitAll()
-                        .anyRequest().authenticated());
+                        .anyRequest().permitAll())
+                .formLogin().disable()
+                .httpBasic().disable();
 
         // Ajout du filtre uniquement si on n’est PAS en test
         if (!environment.acceptsProfiles("test")) {
