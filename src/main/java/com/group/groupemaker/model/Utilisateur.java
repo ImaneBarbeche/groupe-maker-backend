@@ -18,7 +18,7 @@ public class Utilisateur {
     @Column(nullable = false) // rend le champ obligatoire
     private String motDePasse;
     @Column(nullable = false)
-    private String role = "user";
+    private String role; // "USER" ou "FORMATEUR"
 
     @Column(nullable = false)
     private LocalDateTime dateCreation;
@@ -27,7 +27,7 @@ public class Utilisateur {
     private boolean active;
 
     private LocalDateTime dateAcceptationCGU;
-
+    
     // constructeur vide
     public Utilisateur() {
     }
