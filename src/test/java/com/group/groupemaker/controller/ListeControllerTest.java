@@ -87,8 +87,12 @@ public class ListeControllerTest {
         when(listeRepository.findById(42L)).thenReturn(Optional.empty());
 
         // PUT /listes/99 → 404 attendu
-        mockMvc.perform(put("/listes/42"))
+        mockMvc.perform(
+                put("/listes/42")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nom\": \"Nouveau nom\", \"utilisateur\": null}"))
                 .andExpect(status().isNotFound());
+
     }
 
     @Test

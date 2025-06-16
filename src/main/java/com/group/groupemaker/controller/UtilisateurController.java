@@ -2,7 +2,6 @@ package com.group.groupemaker.controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,8 +21,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 @RequestMapping("/utilisateurs") // Toutes les routes commenceront par /utilisateurs
 public class UtilisateurController {
 
-    @Autowired // On injecte UtilisateurRepository
-    private UtilisateurRepository utilisateurRepository;
+    private final UtilisateurRepository utilisateurRepository;
+
+    public UtilisateurController(UtilisateurRepository utilisateurRepository) {
+        this.utilisateurRepository = utilisateurRepository;
+    }
 
     @GetMapping // On répond à une requête GET avec la liste des utilisateurs
     public List<Utilisateur> getAll() {
@@ -74,8 +76,8 @@ public class UtilisateurController {
     public Utilisateur deleteUtilisateurById(@PathVariable Long id) {
         Utilisateur existing = utilisateurRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur non trouvé"));
-            utilisateurRepository.deleteById(id);
-            return existing;
+        utilisateurRepository.deleteById(id);
+        return existing;
     }
 
 }

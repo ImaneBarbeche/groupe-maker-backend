@@ -2,7 +2,6 @@ package com.group.groupemaker.controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,8 +21,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 @RequestMapping("/listes") // Toutes les routes commenceront par /listes
 public class ListeController {
 
-    @Autowired // On injecte ListeRepository
-    private ListeRepository listeRepository;
+    private final ListeRepository listeRepository;
+
+    public ListeController(ListeRepository listeRepository) {
+        this.listeRepository = listeRepository;
+    }
 
     @GetMapping // On répond à une requête GET avec la liste des utilisateurs
     public List<Liste> getAllListes() {
