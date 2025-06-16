@@ -15,20 +15,22 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.group.groupemaker.config.TestSecurityConfig;
 import com.group.groupemaker.model.Liste;
 import com.group.groupemaker.model.Personne;
 import com.group.groupemaker.repository.PersonneRepository;
+import com.group.groupemaker.repository.UtilisateurRepository;
+import com.group.groupemaker.service.JwtAuthenticationFilter;
+import com.group.groupemaker.service.JwtUtil;
 
 @WebMvcTest(PersonneController.class)
-@Import(TestSecurityConfig.class)
+@AutoConfigureMockMvc(addFilters = false) // << désactive les filtres de sécurité pour le test
 public class PersonneControllerTest {
 
     @Autowired
@@ -37,6 +39,15 @@ public class PersonneControllerTest {
     @MockBean
     private PersonneRepository personneRepository;
 
+    @MockBean
+    private UtilisateurRepository utilisateurRepository;
+
+    @MockBean
+    private JwtAuthenticationFilter jwtFilter;
+
+    @MockBean
+    private JwtUtil jwtUtil;
+    
     @Autowired
     private ObjectMapper objectMapper;
 

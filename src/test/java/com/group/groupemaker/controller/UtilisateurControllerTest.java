@@ -1,15 +1,18 @@
 package com.group.groupemaker.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.group.groupemaker.config.TestSecurityConfig;
 import com.group.groupemaker.model.Utilisateur;
 import com.group.groupemaker.repository.UtilisateurRepository;
+import com.group.groupemaker.service.JwtAuthenticationFilter;
+import com.group.groupemaker.service.JwtUtil;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -25,7 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(UtilisateurController.class)
-@Import(TestSecurityConfig.class)
+@AutoConfigureMockMvc(addFilters = false) // << désactive les filtres de sécurité pour le test
 public class UtilisateurControllerTest {
 
     @Autowired
@@ -33,6 +36,15 @@ public class UtilisateurControllerTest {
 
     @MockBean
     private UtilisateurRepository utilisateurRepository;
+
+    @MockBean
+    private JwtAuthenticationFilter jwtFilter;
+
+    @MockBean
+    private JwtUtil jwtUtil;
+
+    @MockBean
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -66,7 +78,7 @@ public class UtilisateurControllerTest {
         when(utilisateurRepository.save(any(Utilisateur.class))).thenReturn(utilisateur);
 
         // on envoie une requête POST avec le JSON, et on vérifie le résultat
-        mockMvc.perform(post("/utilisateurs")
+        mockMvc.perform(post("/utilisateurs/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(utilisateur)))
                 .andExpect(status().isOk())
@@ -101,7 +113,8 @@ public class UtilisateurControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    // Vérifie que PUT /utilisateurs/{id} met à jour les données et renvoie l’utilisateur modifié.
+    // Vérifie que PUT /utilisateurs/{id} met à jour les données et renvoie
+    // l’utilisateur modifié.
     @Test
     void shouldUpdateUtilisateurById() throws Exception {
         // un utilisateur existant simulé
@@ -122,14 +135,17 @@ public class UtilisateurControllerTest {
                 .andExpect(jsonPath("$.email").value("leo.durand@mail.com"));
     }
 
-    // Vérifie que DELETE /utilisateurs/{id} supprime l’utilisateur et renvoie ses données.
+    // Vérifie que DELETE /utilisateurs/{id} supprime l’utilisateur et renvoie ses
+    // données.
     @Test
     void shouldDeleteUtilisateurById() throws Exception {
         // on simule un utilisateur
         Utilisateur utilisateur = new Utilisateur("Anna", "Bernard", "anna@mail.com", "pass", "user");
-        utilisateur.setId(2L); // On définit manuellement l’id de l’utilisateur simulé pour qu’il corresponde à l’appel DELETE /utilisateurs/2
-        
-        // Simule une réponse du repository : findById(2L) retourne un utilisateur fictif.
+        utilisateur.setId(2L); // On définit manuellement l’id de l’utilisateur simulé pour qu’il corresponde à
+                               // l’appel DELETE /utilisateurs/2
+
+        // Simule une réponse du repository : findById(2L) retourne un utilisateur
+        // fictif.
         when(utilisateurRepository.findById(2L)).thenReturn(Optional.of(utilisateur));
 
         // résultats attendus
