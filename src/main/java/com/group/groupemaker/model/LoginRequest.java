@@ -1,6 +1,11 @@
 package com.group.groupemaker.model;
 
 public class LoginRequest {
+
+    public LoginRequest() {
+
+    }
+    
     private String email;
     private String motDePasse;
 

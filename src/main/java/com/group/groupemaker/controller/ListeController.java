@@ -12,9 +12,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 
 import com.group.groupemaker.model.Liste;
+import com.group.groupemaker.model.Utilisateur;
 import com.group.groupemaker.repository.ListeRepository;
+import com.group.groupemaker.repository.UtilisateurRepository;
 import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController // Gérer les requêtes REST, renvoyer du JSON
@@ -22,14 +25,26 @@ import org.springframework.web.bind.annotation.PutMapping;
 public class ListeController {
 
     private final ListeRepository listeRepository;
+    private final UtilisateurRepository utilisateurRepository;
 
-    public ListeController(ListeRepository listeRepository) {
+    public ListeController(ListeRepository listeRepository, UtilisateurRepository utilisateurRepository) {
         this.listeRepository = listeRepository;
+        this.utilisateurRepository = utilisateurRepository;
+
     }
 
     @GetMapping // On répond à une requête GET avec la liste des utilisateurs
     public List<Liste> getAllListes() {
         return listeRepository.findAll();
+    }
+
+    @GetMapping("/mine")
+    public List<Liste> getListesOfCurrentUser(Authentication authentication) {
+        String email = authentication.getName();
+        Utilisateur user = utilisateurRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur introuvable"));
+
+        return listeRepository.findByUtilisateur(user);
     }
 
     // Crée une nouvelle liste à partir des données reçues en JSON.

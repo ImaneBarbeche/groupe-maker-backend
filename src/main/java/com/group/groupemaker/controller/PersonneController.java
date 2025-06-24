@@ -21,7 +21,7 @@ public class PersonneController {
 
     // on répond à une requête GET avec la liste des personnes
     @GetMapping
-    public List<Personne> getAll() {
+    public List<Personne> getAllPersonnes() {
         return personneRepository.findAll();
     }
 

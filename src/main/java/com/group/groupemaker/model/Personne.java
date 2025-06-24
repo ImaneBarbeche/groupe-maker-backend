@@ -49,7 +49,7 @@ public class Personne {
     private String profil;
 
     @NotNull
-    @Min(1)
+    @Min(18)
     @Max(99)
     private Integer age;
 

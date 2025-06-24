@@ -49,4 +49,5 @@ public class Formateur {
     public void setUtilisateur(Utilisateur utilisateur) {
         this.utilisateur = utilisateur;
     }
+
 }

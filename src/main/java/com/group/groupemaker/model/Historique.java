@@ -6,6 +6,10 @@ import java.time.LocalDateTime;
 @Entity
 public class Historique {
 
+    public Historique() {
+
+    }
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

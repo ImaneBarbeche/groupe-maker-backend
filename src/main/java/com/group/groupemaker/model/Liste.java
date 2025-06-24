@@ -1,5 +1,7 @@
 package com.group.groupemaker.model;
 
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.persistence.*; // lie la classe à une table en base de données
 
@@ -17,6 +19,9 @@ public class Liste {
     @JoinColumn(name = "utilisateur_id", nullable = false) // champ utilisateur doit être stocké dans la colonne
                                                            // utilisateur_id en base
     private Utilisateur utilisateur;
+
+    @OneToMany(mappedBy = "liste", cascade = CascadeType.ALL)
+    private List<Personne> personnes = new ArrayList<>();
 
     public Liste() {
     }
@@ -48,6 +53,14 @@ public class Liste {
 
     public void setUtilisateur(Utilisateur utilisateur) {
         this.utilisateur = utilisateur;
+    }
+
+    public List<Personne> getPersonnes() {
+        return personnes;
+    }
+
+    public void setPersonnes(List<Personne> personnes) {
+        this.personnes = personnes;
     }
 
 }

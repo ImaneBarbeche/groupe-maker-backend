@@ -1,15 +1,11 @@
 package com.group.groupemaker.service;
 
 import io.jsonwebtoken.*; // librairie JJWT utilisée pour créer, signer et parser des tokens
+
 import org.springframework.stereotype.Service;
-
 import java.util.Date; // pour gérer les dates d’émission et d’expiration du token
-import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
 import java.security.Key;
-
 import io.jsonwebtoken.security.Keys;
-import java.security.Key;
 
 //  Cette classe va être utilisée pour générer des tokens JWT
 // Elle sera injectée dans les controllers via @Autowired ou un constructeur
@@ -41,6 +37,18 @@ public class JwtUtil {
                     .getSubject(); // on récupère l’email (stocké dans "subject")
         } catch (Exception e) {
             return null; // si le token est invalide ou expiré
+        }
+    }
+
+    public boolean isTokenValid(String token) {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token);
+            return true;
+        } catch (JwtException e) {
+            return false;
         }
     }
 
