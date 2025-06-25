@@ -5,7 +5,9 @@ import com.group.groupemaker.model.Liste;
 import com.group.groupemaker.repository.ListeRepository;
 import com.group.groupemaker.repository.UtilisateurRepository;
 import com.group.groupemaker.service.JwtAuthenticationFilter;
-import com.group.groupemaker.service.JwtUtil;
+import com.group.groupemaker.service.JwtService;
+
+import io.jsonwebtoken.Jwts;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +44,7 @@ public class ListeControllerTest {
         private JwtAuthenticationFilter jwtFilter;
 
         @MockBean
-        private JwtUtil jwtUtil;
+        private JwtService jwtService;
 
         @Autowired
         private ObjectMapper objectMapper;

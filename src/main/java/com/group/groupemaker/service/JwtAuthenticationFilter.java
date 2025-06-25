@@ -1,5 +1,5 @@
 package com.group.groupemaker.service;
-
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,10 +15,10 @@ import java.io.IOException;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtUtil jwtUtil;
+    private final JwtService jwtService;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil) {
-        this.jwtUtil = jwtUtil;
+    public JwtAuthenticationFilter(JwtService jwtService) {
+        this.jwtService = jwtService;
     }
 
     @Override
@@ -41,7 +41,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String token = authHeader.substring(7); // retire "Bearer "
-        String email = jwtUtil.extractEmail(token); // méthode à faire ensuite
+        String email = jwtService.extractEmail(token); // méthode à faire ensuite
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, null,

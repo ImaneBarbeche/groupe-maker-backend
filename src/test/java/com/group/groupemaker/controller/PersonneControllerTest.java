@@ -27,7 +27,7 @@ import com.group.groupemaker.model.Personne;
 import com.group.groupemaker.repository.PersonneRepository;
 import com.group.groupemaker.repository.UtilisateurRepository;
 import com.group.groupemaker.service.JwtAuthenticationFilter;
-import com.group.groupemaker.service.JwtUtil;
+import com.group.groupemaker.service.JwtService;
 
 @WebMvcTest(PersonneController.class)
 @AutoConfigureMockMvc(addFilters = false) // << désactive les filtres de sécurité pour le test
@@ -46,7 +46,7 @@ public class PersonneControllerTest {
     private JwtAuthenticationFilter jwtFilter;
 
     @MockBean
-    private JwtUtil jwtUtil;
+    private JwtService jwtService;
     
     @Autowired
     private ObjectMapper objectMapper;

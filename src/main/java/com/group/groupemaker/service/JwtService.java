@@ -32,4 +32,30 @@ public class JwtService {
                 .signWith(secretKey) // 🔐 Signature du token
                 .compact();
     }
+
+    public String extractEmail(String token) {
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getSubject();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public boolean isTokenValid(String token) {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
 }

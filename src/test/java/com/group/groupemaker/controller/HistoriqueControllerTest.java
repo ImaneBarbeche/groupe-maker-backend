@@ -4,7 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.group.groupemaker.model.Historique;
 import com.group.groupemaker.repository.HistoriqueRepository;
 import com.group.groupemaker.service.JwtAuthenticationFilter;
-import com.group.groupemaker.service.JwtUtil;
+import com.group.groupemaker.service.JwtService;
+import com.group.groupemaker.service.JwtService;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,7 @@ public class HistoriqueControllerTest {
     private JwtAuthenticationFilter jwtFilter;
 
     @MockBean
-    private JwtUtil jwtUtil;
+    private JwtService jwtService;
 
     @Autowired
     private ObjectMapper objectMapper;

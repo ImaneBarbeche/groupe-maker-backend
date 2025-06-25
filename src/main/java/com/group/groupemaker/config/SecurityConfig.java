@@ -10,9 +10,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import com.group.groupemaker.service.JwtAuthenticationFilter;
 
 import java.util.List;
 
@@ -21,9 +24,11 @@ import java.util.List;
 public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public SecurityConfig(UserDetailsService userDetailsService) {
+    public SecurityConfig(UserDetailsService userDetailsService, JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.userDetailsService = userDetailsService;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
     @Bean
@@ -47,10 +52,15 @@ public class SecurityConfig {
                 .csrf().disable()
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/utilisateurs",
                                 "/utilisateurs/register",
-                                "/utilisateurs/login")
+                                "/utilisateurs/login",
+                                "/api/auth/login")
                         .permitAll()
-                        .anyRequest().authenticated())
+                        .anyRequest().authenticated() // ← sécurisé
+                )
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // ⬅️ Ajout du
+                                                                                                      // filtre
                 .formLogin().disable()
                 .httpBasic().disable();
 
@@ -60,15 +70,15 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:4200"));
+        config.setAllowedOrigins(List.of("http://localhost:4200")); // pas de wildcard ici
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
-
-        config.setExposedHeaders(List.of("Set-Cookie"));
+        config.setExposedHeaders(List.of("Set-Cookie")); // ✅ expose le cookie
+        config.setAllowCredentials(true); // ✅ permet de recevoir les cookies
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
     }
+
 }

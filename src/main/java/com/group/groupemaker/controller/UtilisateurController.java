@@ -1,8 +1,6 @@
 package com.group.groupemaker.controller;
-
 import java.time.LocalDateTime;
 import java.util.List;
-
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,10 +19,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import com.group.groupemaker.model.LoginRequest;
 import com.group.groupemaker.model.Utilisateur;
 import com.group.groupemaker.repository.UtilisateurRepository;
-import com.group.groupemaker.service.JwtUtil;
-
+import com.group.groupemaker.service.JwtService;
 import jakarta.servlet.http.HttpServletResponse;
-
 import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController // Gérer les requêtes REST, renvoyer du JSON
@@ -33,13 +29,13 @@ public class UtilisateurController {
 
     private final UtilisateurRepository utilisateurRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
+    private final JwtService jwtService;
 
     public UtilisateurController(UtilisateurRepository utilisateurRepository, PasswordEncoder passwordEncoder,
-            JwtUtil jwtUtil) {
+            JwtService jwtService) {
         this.utilisateurRepository = utilisateurRepository;
         this.passwordEncoder = passwordEncoder;
-        this.jwtUtil = jwtUtil; // on garde la version injectée par Spring
+        this.jwtService = jwtService; // on garde la version injectée par Spring
     }
 
     @GetMapping // On répond à une requête GET avec la liste des utilisateurs
@@ -68,7 +64,7 @@ public class UtilisateurController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Mot de passe incorrect");
         }
 
-        String token = jwtUtil.generateToken(utilisateur.getEmail());
+        String token = jwtService.generateToken(utilisateur);
 
         ResponseCookie cookie = ResponseCookie.from("jwt", token)
                 .httpOnly(true)
@@ -77,8 +73,8 @@ public class UtilisateurController {
                 .maxAge(2 * 60 * 60) // 2 heures
                 .sameSite("Lax")
                 .build();
-
-        response.addHeader("Set-Cookie", cookie.toString());
+        System.out.println("💬 Cookie JWT généré : " + cookie.toString());
+        response.setHeader("Set-Cookie", cookie.toString());
 
         return ResponseEntity.ok(utilisateur);
     }
@@ -148,11 +144,11 @@ public class UtilisateurController {
     @GetMapping("/me")
     public Utilisateur getCurrentUser(@CookieValue(name = "jwt", required = false) String token) {
 
-        if (token == null || !jwtUtil.isTokenValid(token)) {
+        if (token == null || !jwtService.isTokenValid(token)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token manquant ou invalide");
         }
 
-        String email = jwtUtil.extractEmail(token);
+        String email = jwtService.extractEmail(token);
 
         if (email == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token invalide");
