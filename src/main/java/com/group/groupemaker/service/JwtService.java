@@ -27,7 +27,6 @@ public class JwtService {
 
         return Jwts.builder()
                 .setSubject(utilisateur.getEmail()) // 📧 L'identifiant principal
-                .claim("role", utilisateur.getRole()) // 👤 Ajout d’un rôle si besoin
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(secretKey) // 🔐 Signature du token

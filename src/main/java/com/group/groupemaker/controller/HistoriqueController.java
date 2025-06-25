@@ -32,7 +32,11 @@ public class HistoriqueController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        historiqueRepository.deleteById(id);
+public void delete(@PathVariable Long id) {
+    if (!historiqueRepository.existsById(id)) {
+        throw new RuntimeException("Historique introuvable");
     }
+    historiqueRepository.deleteById(id);
+}
+
 }

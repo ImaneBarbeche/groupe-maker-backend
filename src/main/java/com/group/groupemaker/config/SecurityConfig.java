@@ -43,19 +43,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors().configurationSource(corsConfigurationSource()).and()
-            .csrf().disable()
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                    "/utilisateurs",
-                    "/utilisateurs/register",
-                    "/utilisateurs/login",
-                    "/api/auth/login"
-                ).permitAll()
-                .anyRequest().permitAll()
-            )
-            .formLogin().disable()
-            .httpBasic().disable();
+                .cors().configurationSource(corsConfigurationSource()).and()
+                .csrf().disable()
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/utilisateurs/register",
+                                "/utilisateurs/login")
+                        .permitAll()
+                        .anyRequest().authenticated())
+                .formLogin().disable()
+                .httpBasic().disable();
 
         return http.build();
     }
@@ -67,6 +64,8 @@ public class SecurityConfig {
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
+
+        config.setExposedHeaders(List.of("Set-Cookie"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

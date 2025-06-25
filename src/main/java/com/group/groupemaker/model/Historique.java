@@ -2,6 +2,7 @@ package com.group.groupemaker.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 public class Historique {
@@ -9,7 +10,7 @@ public class Historique {
     public Historique() {
 
     }
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -18,9 +19,32 @@ public class Historique {
 
     private String nomListe;
 
+    @OneToMany
+    private List<Groupe> groupes;
+
+    @ManyToOne
+    @JoinColumn(name = "liste_id", nullable = false)
+    private Liste liste;
+
+    @ManyToOne
+    @JoinColumn(name = "utilisateur_id", nullable = false)
+    private Utilisateur utilisateur;
+
     @PrePersist
     protected void onCreate() {
         this.dateTirage = LocalDateTime.now();
+    }
+
+    public List<Groupe> getGroupes() {
+        return groupes;
+    }
+
+    public Liste getListe() {
+        return liste;
+    }
+
+    public Utilisateur getUtilisateur() {
+        return utilisateur;
     }
 
     // Getters et setters
@@ -42,6 +66,18 @@ public class Historique {
 
     public void setDateTirage(LocalDateTime dateTirage) {
         this.dateTirage = dateTirage;
+    }
+
+    public void setGroupes(List<Groupe> groupes) {
+        this.groupes = groupes;
+    }
+
+    public void setListe(Liste liste) {
+        this.liste = liste;
+    }
+
+    public void setUtilisateur(Utilisateur utilisateur) {
+        this.utilisateur = utilisateur;
     }
 
     public void setNomListe(String nomListe) {

@@ -1,89 +1,48 @@
 package com.group.groupemaker.controller;
 
-import java.util.List;
-
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import org.springframework.web.server.ResponseStatusException;
+import com.group.groupemaker.dto.ListeDTO;
+import com.group.groupemaker.model.Utilisateur;
+import com.group.groupemaker.repository.UtilisateurRepository;
+import com.group.groupemaker.service.ListeService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
-import com.group.groupemaker.model.Liste;
-import com.group.groupemaker.model.Utilisateur;
-import com.group.groupemaker.repository.ListeRepository;
-import com.group.groupemaker.repository.UtilisateurRepository;
-import org.springframework.web.bind.annotation.PutMapping;
+import java.util.List;
 
-@RestController // Gérer les requêtes REST, renvoyer du JSON
-@RequestMapping("/listes") // Toutes les routes commenceront par /listes
+@RestController
+@RequestMapping("/listes")
 public class ListeController {
 
-    private final ListeRepository listeRepository;
+    private final ListeService listeService;
     private final UtilisateurRepository utilisateurRepository;
 
-    public ListeController(ListeRepository listeRepository, UtilisateurRepository utilisateurRepository) {
-        this.listeRepository = listeRepository;
+    public ListeController(ListeService listeService, UtilisateurRepository utilisateurRepository) {
+        this.listeService = listeService;
         this.utilisateurRepository = utilisateurRepository;
-
-    }
-
-    @GetMapping // On répond à une requête GET avec la liste des utilisateurs
-    public List<Liste> getAllListes() {
-        return listeRepository.findAll();
     }
 
     @GetMapping("/mine")
-    public List<Liste> getListesOfCurrentUser(Authentication authentication) {
-        String email = authentication.getName();
-        Utilisateur user = utilisateurRepository.findByEmail(email)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur introuvable"));
-
-        return listeRepository.findByUtilisateur(user);
+    public List<ListeDTO> getMesListes(Authentication authentication) {
+        Utilisateur utilisateur = getUtilisateurConnecte(authentication);
+        return listeService.getListesByUtilisateur(utilisateur.getId());
     }
 
-    // Crée une nouvelle liste à partir des données reçues en JSON.
-    // Enregistre l’objet en base et renvoie la liste créée.
     @PostMapping
-    public Liste addListe(@RequestBody Liste liste) {
-
-        return listeRepository.save(liste);
+    public ListeDTO creerListe(@RequestBody ListeDTO dto, Authentication authentication) {
+        Utilisateur utilisateur = getUtilisateurConnecte(authentication);
+        return listeService.createListe(dto, utilisateur.getId());
     }
 
-    // Supprime une liste à partir de son identifiant.
-    // Si la liste est trouvée, elle est supprimée et renvoyée en réponse.
-    // Sinon, une erreur 404 est retournée.
-
+    // Optionnel : suppression directe depuis le service ou via repo
     @DeleteMapping("/{id}")
-    public Liste deleteListeById(@PathVariable Long id) {
-        Liste existing = listeRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Liste not found"));
-
-        listeRepository.deleteById(id);
-        return existing;
+    public void supprimerListe(@PathVariable Long id) {
+        listeService.supprimerListe(id); // À créer si tu veux
     }
 
-    // Récupère une liste à partir de son identifiant.
-    // Si elle est trouvée, la retourne en JSON.
-    // Sinon, déclenche une erreur 404.
-    @GetMapping("/{id}")
-    public Liste getListeById(@PathVariable Long id) {
-        Liste existing = listeRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Liste not found"));
-        return existing;
-    }
-
-    // Met à jour le nom d'une liste existante à partir de son identifiant.
-    @PutMapping("/{id}")
-    public Liste putListeById(@PathVariable Long id, @RequestBody Liste liste) {
-        Liste existing = listeRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Liste not found"));
-        existing.setNom(liste.getNom());
-        return listeRepository.save(existing);
+    private Utilisateur getUtilisateurConnecte(Authentication authentication) {
+        return utilisateurRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur introuvable"));
     }
 }

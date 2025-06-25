@@ -13,6 +13,7 @@ public class Groupe {
     private Long id;
 
     private String nom;
+
     private String criteres;
 
     private LocalDateTime dateCreation;
@@ -20,12 +21,9 @@ public class Groupe {
     @OneToMany
     private List<Personne> personnes = new ArrayList<>();
 
-    @ManyToMany
-    private List<Personne> eleves = new ArrayList<>(); // Liste des élèves affectés à un groupe
-
     @ManyToOne
-    @JoinColumn(name = "formateur_id") // facultatif mais clair
-    private Formateur formateur;
+    @JoinColumn(name = "liste_id", nullable = false)
+    private Liste liste;
 
     @PrePersist
     protected void onCreate() {
@@ -35,11 +33,10 @@ public class Groupe {
     public Groupe() {
     }
 
-    public Groupe(String nom, String criteres, List<Personne> personnes, Formateur formateur) {
+    public Groupe(String nom, String criteres, List<Personne> personnes) {
         this.nom = nom;
         this.criteres = criteres;
         this.personnes = personnes;
-        this.formateur = formateur;
 
     }
 
@@ -83,12 +80,12 @@ public class Groupe {
         this.personnes = personnes;
     }
 
-    public Formateur getFormateur() {
-        return formateur;
+    public Liste getListe() {
+        return liste;
     }
 
-    public void setFormateur(Formateur formateur) {
-        this.formateur = formateur;
+    public void setListe(Liste liste) {
+        this.liste = liste;
     }
 
 }

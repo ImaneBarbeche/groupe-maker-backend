@@ -1,9 +1,11 @@
 package com.group.groupemaker.repository;
 
 import com.group.groupemaker.model.Personne;
+import com.group.groupemaker.model.Liste;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface PersonneRepository extends JpaRepository<Personne, Long> {
-    
-}
+import java.util.List;
 
+public interface PersonneRepository extends JpaRepository<Personne, Long> {
+    List<Personne> findByListe(Liste liste);
+}

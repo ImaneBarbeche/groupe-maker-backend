@@ -2,6 +2,7 @@ package com.group.groupemaker.controller;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,7 +12,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,6 +22,9 @@ import com.group.groupemaker.model.LoginRequest;
 import com.group.groupemaker.model.Utilisateur;
 import com.group.groupemaker.repository.UtilisateurRepository;
 import com.group.groupemaker.service.JwtUtil;
+
+import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController // Gérer les requêtes REST, renvoyer du JSON
@@ -47,11 +53,6 @@ public class UtilisateurController {
         String encodedPassword = passwordEncoder.encode(utilisateur.getMotDePasse());
         utilisateur.setMotDePasse(encodedPassword);
 
-        // ✅ Ne pas forcer le rôle s'il est déjà défini
-        if (utilisateur.getRole() == null || utilisateur.getRole().isBlank()) {
-            utilisateur.setRole("USER");
-        }
-
         utilisateur.setActive(true);
         utilisateur.setDateCreation(LocalDateTime.now());
 
@@ -59,23 +60,27 @@ public class UtilisateurController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        System.out.println(">>> Tentative de login avec " + request.getEmail());
-
+    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletResponse response) {
         Utilisateur utilisateur = utilisateurRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> {
-                    System.out.println(">>> Email introuvable !");
-                    return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Email incorrect");
-                });
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Email incorrect"));
 
         if (!passwordEncoder.matches(request.getMotDePasse(), utilisateur.getMotDePasse())) {
-            System.out.println(">>> Mot de passe incorrect !");
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Mot de passe incorrect");
         }
 
         String token = jwtUtil.generateToken(utilisateur.getEmail());
-        System.out.println(">>> Login réussi, token généré.");
-        return ResponseEntity.ok(token);
+
+        ResponseCookie cookie = ResponseCookie.from("jwt", token)
+                .httpOnly(true)
+                .secure(false) // à passer à true en prod avec HTTPS
+                .path("/")
+                .maxAge(2 * 60 * 60) // 2 heures
+                .sameSite("Lax")
+                .build();
+
+        response.addHeader("Set-Cookie", cookie.toString());
+
+        return ResponseEntity.ok(utilisateur);
     }
 
     /**
@@ -155,6 +160,20 @@ public class UtilisateurController {
 
         return utilisateurRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur introuvable"));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletResponse response) {
+        ResponseCookie cookie = ResponseCookie.from("jwt", "")
+                .httpOnly(true)
+                .secure(false) // true en production HTTPS
+                .path("/")
+                .maxAge(0) // expire immédiatement
+                .sameSite("Lax") // ou "Strict" en fonction de ton usage
+                .build();
+
+        response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        return ResponseEntity.noContent().build();
     }
 
 }
