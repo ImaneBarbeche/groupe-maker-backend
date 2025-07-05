@@ -46,29 +46,26 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .cors().configurationSource(corsConfigurationSource()).and()
-                .csrf().disable()
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/utilisateurs",
-                                "/utilisateurs/register",
-                                "/utilisateurs/login",
-                                "/api/auth/login")
-                        .permitAll()
-                        .anyRequest().authenticated() // ← sécurisé
-                )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // ⬅️ Ajout du
-                                                                                                      // filtre
-                .formLogin().disable()
-                .httpBasic().disable();
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+        .cors().configurationSource(corsConfigurationSource()).and()
+        .csrf().disable()
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/utilisateurs/register", "/utilisateurs/login").permitAll()
+            .anyRequest().authenticated()
+        )
+        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+        .formLogin().disable()
+        .httpBasic().disable();
 
-        return http.build();
-    }
+    return http.build();
+}
+
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+        System.out.println("🛂 Configuration CORS appliquée !");
+
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("http://localhost:4200")); // pas de wildcard ici
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));

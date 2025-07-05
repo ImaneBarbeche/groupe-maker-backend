@@ -1,4 +1,5 @@
 package com.group.groupemaker.controller;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -14,12 +15,16 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.group.groupemaker.model.LoginRequest;
 import com.group.groupemaker.model.Utilisateur;
 import com.group.groupemaker.repository.UtilisateurRepository;
 import com.group.groupemaker.service.JwtService;
+
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.PutMapping;
 
@@ -30,12 +35,15 @@ public class UtilisateurController {
     private final UtilisateurRepository utilisateurRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
 
     public UtilisateurController(UtilisateurRepository utilisateurRepository, PasswordEncoder passwordEncoder,
-            JwtService jwtService) {
+            JwtService jwtService, AuthenticationManager authenticationManager) {
         this.utilisateurRepository = utilisateurRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService; // on garde la version injectée par Spring
+        this.authenticationManager = authenticationManager;
+
     }
 
     @GetMapping // On répond à une requête GET avec la liste des utilisateurs
@@ -44,33 +52,39 @@ public class UtilisateurController {
     }
 
     @PostMapping("/register")
-    public Utilisateur register(@RequestBody Utilisateur utilisateur) {
-        // Encodage du mot de passe
-        String encodedPassword = passwordEncoder.encode(utilisateur.getMotDePasse());
-        utilisateur.setMotDePasse(encodedPassword);
+    public ResponseEntity<Utilisateur> register(@RequestBody Utilisateur utilisateur, HttpServletResponse response) {
+        System.out.println("🔔 Requête reçue pour inscription !");
+        System.out.println("📨 Données reçues : " + utilisateur);
 
-        utilisateur.setActive(true);
-        utilisateur.setDateCreation(LocalDateTime.now());
+        Utilisateur saved = utilisateurRepository.save(utilisateur);
 
-        return utilisateurRepository.save(utilisateur);
+        // ✅ Génère le JWT à partir de l'objet (modifie ici selon ta méthode existante)
+        String jwt = jwtService.generateToken(saved);
+
+        // ✅ Ajoute le cookie manuellement avec SameSite
+        String cookieValue = "jwt=" + jwt + "; Path=/; Max-Age=7200; HttpOnly; SameSite=Lax";
+        response.addHeader("Set-Cookie", cookieValue);
+
+        return ResponseEntity.ok(saved);
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletResponse response) {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getMotDePasse()));
+
         Utilisateur utilisateur = utilisateurRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Email incorrect"));
-
-        if (!passwordEncoder.matches(request.getMotDePasse(), utilisateur.getMotDePasse())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Mot de passe incorrect");
-        }
 
         String token = jwtService.generateToken(utilisateur);
 
         ResponseCookie cookie = ResponseCookie.from("jwt", token)
                 .httpOnly(true)
-                .secure(false) // à passer à true en prod avec HTTPS
+                .secure(false)
                 .path("/")
-                .maxAge(2 * 60 * 60) // 2 heures
+                .maxAge(2 * 60 * 60)
                 .sameSite("Lax")
                 .build();
         System.out.println("💬 Cookie JWT généré : " + cookie.toString());
@@ -162,10 +176,10 @@ public class UtilisateurController {
     public ResponseEntity<Void> logout(HttpServletResponse response) {
         ResponseCookie cookie = ResponseCookie.from("jwt", "")
                 .httpOnly(true)
-                .secure(false) // true en production HTTPS
+                .secure(true) // true en production HTTPS
                 .path("/")
                 .maxAge(0) // expire immédiatement
-                .sameSite("Lax") // ou "Strict" en fonction de ton usage
+                .sameSite("None") // ou "Strict" en fonction de ton usage
                 .build();
 
         response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());

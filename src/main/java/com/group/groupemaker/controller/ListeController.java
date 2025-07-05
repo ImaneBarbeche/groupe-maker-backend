@@ -41,8 +41,10 @@ public class ListeController {
         listeService.supprimerListe(id); // À créer si tu veux
     }
 
-    private Utilisateur getUtilisateurConnecte(Authentication authentication) {
-        return utilisateurRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur introuvable"));
-    }
+    public Utilisateur getUtilisateurConnecte(Authentication authentication) {
+    String email = (String) authentication.getPrincipal();
+    return utilisateurRepository.findByEmail(email)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+}
+
 }
