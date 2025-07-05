@@ -46,21 +46,21 @@ public class SecurityConfig {
     }
 
     @Bean
-public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http
-        .cors().configurationSource(corsConfigurationSource()).and()
-        .csrf().disable()
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/utilisateurs/register", "/utilisateurs/login").permitAll()
-            .anyRequest().authenticated()
-        )
-        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-        .formLogin().disable()
-        .httpBasic().disable();
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        System.out.println("🛂 Configuration de sécurité appliquée !");
+        http
+                .csrf().disable()
+                .cors() // Active la configuration CORS
+                .and()
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/utilisateurs/register", "/utilisateurs/login").permitAll()
+                        .anyRequest().authenticated())
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .formLogin().disable()
+                .httpBasic().disable();
 
-    return http.build();
-}
-
+        return http.build();
+    }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -68,7 +68,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
 
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("http://localhost:4200")); // pas de wildcard ici
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("*"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Set-Cookie")); // ✅ expose le cookie
         config.setAllowCredentials(true); // ✅ permet de recevoir les cookies

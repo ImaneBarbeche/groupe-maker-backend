@@ -52,34 +52,40 @@ public class UtilisateurController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<Utilisateur> register(@RequestBody Utilisateur utilisateur, HttpServletResponse response) {
-        System.out.println("🔔 Requête reçue pour inscription !");
-        System.out.println("📨 Données reçues : " + utilisateur);
-
-        Utilisateur saved = utilisateurRepository.save(utilisateur);
-
-        // ✅ Génère le JWT à partir de l'objet (modifie ici selon ta méthode existante)
-        String jwt = jwtService.generateToken(saved);
-
-        // ✅ Ajoute le cookie manuellement avec SameSite
-        String cookieValue = "jwt=" + jwt + "; Path=/; Max-Age=7200; HttpOnly; SameSite=Lax";
-        response.addHeader("Set-Cookie", cookieValue);
-
-        return ResponseEntity.ok(saved);
+public ResponseEntity<Utilisateur> register(@RequestBody Utilisateur utilisateur, HttpServletResponse response) {
+        System.out.println("📥 Requête reçue pour l'inscription : " + utilisateur);
+if (utilisateurRepository.findByEmail(utilisateur.getEmail()).isPresent()) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cet email est déjà utilisé.");
     }
+    utilisateur.setMotDePasse(passwordEncoder.encode(utilisateur.getMotDePasse())); // Encode le mot de passe
+    utilisateur.setActive(true); // Active l'utilisateur
+    Utilisateur saved = utilisateurRepository.save(utilisateur);
+    String jwt = jwtService.generateToken(saved);
+    String cookieValue = "jwt=" + jwt + "; Path=/; Max-Age=7200; HttpOnly; SameSite=Lax";
+    response.addHeader("Set-Cookie", cookieValue);
+    return ResponseEntity.ok(saved);
+}
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletResponse response) {
+public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletResponse response) {
+    try {
+        // Authentification via AuthenticationManager
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
                         request.getMotDePasse()));
 
+        System.out.println("✅ Authentification réussie pour : " + request.getEmail());
+
+        // Récupération de l'utilisateur
         Utilisateur utilisateur = utilisateurRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Email incorrect"));
 
+        // Génération du token JWT
         String token = jwtService.generateToken(utilisateur);
+        System.out.println("✅ Token généré : " + token);
 
+        // Création du cookie JWT
         ResponseCookie cookie = ResponseCookie.from("jwt", token)
                 .httpOnly(true)
                 .secure(false)
@@ -91,7 +97,11 @@ public class UtilisateurController {
         response.setHeader("Set-Cookie", cookie.toString());
 
         return ResponseEntity.ok(utilisateur);
+    } catch (Exception e) {
+        System.err.println("❌ Échec de l'authentification : " + e.getMessage());
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Connexion échouée");
     }
+}
 
     /**
      * Renvoie un utilisateur par son id uniquement s’il s’agit de l’utilisateur
