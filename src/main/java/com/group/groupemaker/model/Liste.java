@@ -15,6 +15,19 @@ public class Liste {
     @Column(nullable = false)
     private String nom;
 
+     private String description;
+
+    public String getDescription() {
+        return description;
+    }
+
+     public String getSlug() {
+         return slug;
+     }
+
+    @Column(unique = true)
+    private String slug;
+    
     @ManyToOne // lier une lsite à un utilisateur précis
     @JoinColumn(name = "utilisateur_id", nullable = false) // champ utilisateur doit être stocké dans la colonne
                                                            // utilisateur_id en base
@@ -61,6 +74,16 @@ public class Liste {
 
     public void setPersonnes(List<Personne> personnes) {
         this.personnes = personnes;
+    }
+
+    public void setDescription(String description) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setDescription'");
+    }
+
+    public void setSlug(String slug) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setSlug'");
     }
 
 }

@@ -10,8 +10,39 @@ public class PersonneDTO {
     private int niveauTechnique;
     private String profil;
     private int age;
-    private Long listeId;
+    private Long utilisateurId; // Ajout de l'attribut utilisateurId
 
+    // Constructeur par défaut
+    public PersonneDTO() {}
+
+    // Constructeur avec tous les champs
+    public PersonneDTO(Long id, String nom, String genre, int aisanceFr, boolean ancienDwwm,
+                       int niveauTechnique, String profil, int age, Long utilisateurId) {
+        this.id = id;
+        this.nom = nom;
+        this.genre = genre;
+        this.aisanceFr = aisanceFr;
+        this.ancienDwwm = ancienDwwm;
+        this.niveauTechnique = niveauTechnique;
+        this.profil = profil;
+        this.age = age;
+        this.utilisateurId = utilisateurId;
+    }
+
+    // Constructeur sans utilisateurId
+    public PersonneDTO(Long id, String nom, String genre, int aisanceFr, boolean ancienDwwm,
+                       int niveauTechnique, String profil, int age) {
+        this.id = id;
+        this.nom = nom;
+        this.genre = genre;
+        this.aisanceFr = aisanceFr;
+        this.ancienDwwm = ancienDwwm;
+        this.niveauTechnique = niveauTechnique;
+        this.profil = profil;
+        this.age = age;
+    }
+
+    // Getters et setters
     public Long getId() {
         return id;
     }
@@ -76,26 +107,11 @@ public class PersonneDTO {
         this.age = age;
     }
 
-    public Long getListeId() {
-        return listeId;
+    public Long getUtilisateurId() {
+        return utilisateurId;
     }
 
-    public void setListeId(Long listeId) {
-        this.listeId = listeId;
-    }
-
-    public PersonneDTO() {}
-
-    public PersonneDTO(Long id, String nom, String genre, int aisanceFr, boolean ancienDwwm,
-                       int niveauTechnique, String profil, int age, Long listeId) {
-        this.id = id;
-        this.nom = nom;
-        this.genre = genre;
-        this.aisanceFr = aisanceFr;
-        this.ancienDwwm = ancienDwwm;
-        this.niveauTechnique = niveauTechnique;
-        this.profil = profil;
-        this.age = age;
-        this.listeId = listeId;
+    public void setUtilisateurId(Long utilisateurId) {
+        this.utilisateurId = utilisateurId;
     }
 }

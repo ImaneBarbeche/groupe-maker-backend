@@ -7,7 +7,6 @@ import com.group.groupemaker.repository.UtilisateurRepository;
 import com.group.groupemaker.service.JwtAuthenticationFilter;
 import com.group.groupemaker.service.JwtService;
 
-import io.jsonwebtoken.Jwts;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

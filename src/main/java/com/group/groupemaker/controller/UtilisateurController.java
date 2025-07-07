@@ -1,6 +1,5 @@
 package com.group.groupemaker.controller;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,7 +23,6 @@ import com.group.groupemaker.model.Utilisateur;
 import com.group.groupemaker.repository.UtilisateurRepository;
 import com.group.groupemaker.service.JwtService;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.PutMapping;
 
@@ -98,7 +96,7 @@ public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletRes
 
         return ResponseEntity.ok(utilisateur);
     } catch (Exception e) {
-        System.err.println("❌ Échec de l'authentification : " + e.getMessage());
+        System.err.println("Échec de l'authentification : " + e.getMessage());
         throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Connexion échouée");
     }
 }

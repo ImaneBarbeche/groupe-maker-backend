@@ -23,8 +23,8 @@ private Key getSigningKey() {
     return Keys.hmacShaKeyFor(keyBytes); // Crée une clé sécurisée pour HMAC-SHA256
 }
 
-    // 🕒 Durée de validité du token (ex : 2 heures ici)
-    private final long expirationTimeMillis = 2 * 60 * 60 * 1000;
+    // // 🕒 Durée de validité du token (ex : 2 heures ici)
+    // private final long expirationTimeMillis = 2 * 60 * 60 * 1000;
 
     /**
      * Génère un JWT signé à partir des infos d’un utilisateur
