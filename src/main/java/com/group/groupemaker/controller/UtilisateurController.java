@@ -58,13 +58,16 @@ public ResponseEntity<Map<String, Object>> register(@RequestBody Utilisateur uti
     System.out.println("📥 Requête reçue pour l'inscription : " + utilisateur);
     
     utilisateur.setMotDePasse(passwordEncoder.encode(utilisateur.getMotDePasse()));
-    utilisateur.setActive(false); // Compte désactivé par défaut
+    
+    // En mode développement, activer directement les comptes
+    // TODO: En production, remettre à false et implémenter la validation par email
+    utilisateur.setActive(true); // Compte activé directement en développement
     utilisateur.setRole(Role.USER);
     
     Utilisateur saved = utilisateurRepository.save(utilisateur);
     
     response.put("success", true);
-    response.put("message", "Inscription réussie. Veuillez vérifier votre email pour activer votre compte.");
+    response.put("message", "Inscription réussie ! Vous pouvez maintenant vous connecter.");
     response.put("data", Map.of(
         "id", saved.getId(),
         "nom", saved.getNom(),
@@ -79,6 +82,8 @@ public ResponseEntity<Map<String, Object>> register(@RequestBody Utilisateur uti
     @PostMapping("/login")
 public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletResponse response) {
     try {
+        System.out.println("🔐 Tentative de connexion pour : " + request.getEmail());
+        
         // Authentification via AuthenticationManager
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
