@@ -1,17 +1,15 @@
 package com.group.groupemaker.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.group.groupemaker.config.TestSecurityConfig;
 import com.group.groupemaker.model.Utilisateur;
 import com.group.groupemaker.repository.UtilisateurRepository;
-import com.group.groupemaker.service.JwtAuthenticationFilter;
-import com.group.groupemaker.service.JwtService;
-
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
@@ -32,7 +30,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 
 @WebMvcTest(UtilisateurController.class)
-@AutoConfigureMockMvc(addFilters = false) // << désactive les filtres de sécurité pour le test
+@Import(TestSecurityConfig.class)
 public class UtilisateurControllerTest {
 
     @Autowired
@@ -40,12 +38,6 @@ public class UtilisateurControllerTest {
 
     @MockBean
     private UtilisateurRepository utilisateurRepository;
-
-    @MockBean
-    private JwtAuthenticationFilter jwtFilter;
-
-    @MockBean
-    private JwtService jwtService;
 
     @MockBean
     private PasswordEncoder passwordEncoder;
