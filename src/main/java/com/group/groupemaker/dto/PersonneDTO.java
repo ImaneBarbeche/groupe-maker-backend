@@ -1,14 +1,17 @@
 package com.group.groupemaker.dto;
 
+import com.group.groupemaker.model.Genre;
+import com.group.groupemaker.model.Profil;
+
 // Classe DTO pour Personne
 public class PersonneDTO {
     private Long id;
     private String nom;
-    private String genre;
+    private Genre genre;
     private int aisanceFr;
     private boolean ancienDwwm;
     private int niveauTechnique;
-    private String profil;
+    private Profil profil;
     private int age;
     private Long utilisateurId; // Ajout de l'attribut utilisateurId
 
@@ -16,8 +19,8 @@ public class PersonneDTO {
     public PersonneDTO() {}
 
     // Constructeur avec tous les champs
-    public PersonneDTO(Long id, String nom, String genre, int aisanceFr, boolean ancienDwwm,
-                       int niveauTechnique, String profil, int age, Long utilisateurId) {
+    public PersonneDTO(Long id, String nom, Genre genre, int aisanceFr, boolean ancienDwwm,
+                       int niveauTechnique, Profil profil, int age, Long utilisateurId) {
         this.id = id;
         this.nom = nom;
         this.genre = genre;
@@ -30,8 +33,8 @@ public class PersonneDTO {
     }
 
     // Constructeur sans utilisateurId
-    public PersonneDTO(Long id, String nom, String genre, int aisanceFr, boolean ancienDwwm,
-                       int niveauTechnique, String profil, int age) {
+    public PersonneDTO(Long id, String nom, Genre genre, int aisanceFr, boolean ancienDwwm,
+                       int niveauTechnique, Profil profil, int age) {
         this.id = id;
         this.nom = nom;
         this.genre = genre;
@@ -59,11 +62,11 @@ public class PersonneDTO {
         this.nom = nom;
     }
 
-    public String getGenre() {
+    public Genre getGenre() {
         return genre;
     }
 
-    public void setGenre(String genre) {
+    public void setGenre(Genre genre) {
         this.genre = genre;
     }
 
@@ -91,11 +94,11 @@ public class PersonneDTO {
         this.niveauTechnique = niveauTechnique;
     }
 
-    public String getProfil() {
+    public Profil getProfil() {
         return profil;
     }
 
-    public void setProfil(String profil) {
+    public void setProfil(Profil profil) {
         this.profil = profil;
     }
 

@@ -25,6 +25,10 @@ public class Utilisateur {
     @Column(nullable = false)
     private boolean active;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
     private LocalDateTime dateAcceptationCGU;
 
     public Utilisateur() {}
@@ -34,7 +38,8 @@ public class Utilisateur {
     this.nom = nom;
     this.email = email;
     this.motDePasse = motDePasse;
-    this.active = true;
+    this.active = false; // Désactivé par défaut selon cahier des charges
+    this.role = Role.USER; // Rôle par défaut
     this.dateCreation = LocalDateTime.now();
 }
 
@@ -76,6 +81,10 @@ public class Utilisateur {
         return dateAcceptationCGU;
     }
 
+    public Role getRole() {
+        return role;
+    }
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -106,6 +115,10 @@ public class Utilisateur {
 
     public void setDateAcceptationCGU(LocalDateTime dateAcceptationCGU) {
         this.dateAcceptationCGU = dateAcceptationCGU;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 
     

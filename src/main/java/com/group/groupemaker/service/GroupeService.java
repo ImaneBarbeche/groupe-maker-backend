@@ -5,9 +5,11 @@ import com.group.groupemaker.dto.PersonneDTO;
 import com.group.groupemaker.model.Groupe;
 import com.group.groupemaker.model.Liste;
 import com.group.groupemaker.model.Personne;
+import com.group.groupemaker.model.Historique;
 import com.group.groupemaker.repository.GroupeRepository;
 import com.group.groupemaker.repository.ListeRepository;
 import com.group.groupemaker.repository.PersonneRepository;
+import com.group.groupemaker.repository.HistoriqueRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,11 +21,17 @@ public class GroupeService {
     private final GroupeRepository groupeRepository;
     private final ListeRepository listeRepository;
     private final PersonneRepository personneRepository;
+    private final GroupeAleatoireService groupeAleatoireService;
+    private final HistoriqueRepository historiqueRepository;
 
-    public GroupeService(GroupeRepository groupeRepository, ListeRepository listeRepository, PersonneRepository personneRepository) {
+    public GroupeService(GroupeRepository groupeRepository, ListeRepository listeRepository, 
+                        PersonneRepository personneRepository, GroupeAleatoireService groupeAleatoireService,
+                        HistoriqueRepository historiqueRepository) {
         this.groupeRepository = groupeRepository;
         this.listeRepository = listeRepository;
         this.personneRepository = personneRepository;
+        this.groupeAleatoireService = groupeAleatoireService;
+        this.historiqueRepository = historiqueRepository;
     }
 
     public List<GroupeDTO> getGroupesParListe(Long listeId) {

@@ -9,8 +9,8 @@ public class Personne {
     public Personne() {
     }
 
-    public Personne(String nom, String genre, Integer aisanceFr, Boolean ancienDwwm,
-            Integer niveauTechnique, String profil, Integer age, Liste liste) {
+    public Personne(String nom, Genre genre, Integer aisanceFr, Boolean ancienDwwm,
+            Integer niveauTechnique, Profil profil, Integer age, Liste liste) {
         this.nom = nom;
         this.genre = genre;
         this.aisanceFr = aisanceFr;
@@ -30,7 +30,8 @@ public class Personne {
     private String nom;
 
     @NotNull
-    private String genre;
+    @Enumerated(EnumType.STRING)
+    private Genre genre;
 
     @NotNull
     @Min(1)
@@ -46,10 +47,11 @@ public class Personne {
     private Integer niveauTechnique;
 
     @NotNull
-    private String profil;
+    @Enumerated(EnumType.STRING)
+    private Profil profil;
 
     @NotNull
-    @Min(18)
+    @Min(1)
     @Max(99)
     private Integer age;
 
@@ -73,11 +75,11 @@ public class Personne {
         this.nom = nom;
     }
 
-    public String getGenre() {
+    public Genre getGenre() {
         return genre;
     }
 
-    public void setGenre(String genre) {
+    public void setGenre(Genre genre) {
         this.genre = genre;
     }
 
@@ -105,11 +107,11 @@ public class Personne {
         this.niveauTechnique = niveauTechnique;
     }
 
-    public String getProfil() {
+    public Profil getProfil() {
         return profil;
     }
 
-    public void setProfil(String profil) {
+    public void setProfil(Profil profil) {
         this.profil = profil;
     }
 

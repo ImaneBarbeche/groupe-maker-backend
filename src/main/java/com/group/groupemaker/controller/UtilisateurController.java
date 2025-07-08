@@ -1,6 +1,8 @@
 package com.group.groupemaker.controller;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.group.groupemaker.model.LoginRequest;
 import com.group.groupemaker.model.Utilisateur;
+import com.group.groupemaker.model.Role;
 import com.group.groupemaker.repository.UtilisateurRepository;
 import com.group.groupemaker.service.JwtService;
 
@@ -50,18 +53,38 @@ public class UtilisateurController {
     }
 
     @PostMapping("/register")
-public ResponseEntity<Utilisateur> register(@RequestBody Utilisateur utilisateur, HttpServletResponse response) {
-        System.out.println("📥 Requête reçue pour l'inscription : " + utilisateur);
-if (utilisateurRepository.findByEmail(utilisateur.getEmail()).isPresent()) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cet email est déjà utilisé.");
+public ResponseEntity<Map<String, Object>> register(@RequestBody Utilisateur utilisateur) {
+    Map<String, Object> response = new HashMap<>();
+    
+    System.out.println("📥 Requête reçue pour l'inscription : " + utilisateur);
+    
+    if (utilisateurRepository.findByEmail(utilisateur.getEmail()).isPresent()) {
+        response.put("success", false);
+        response.put("message", "Cet email est déjà utilisé.");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
-    utilisateur.setMotDePasse(passwordEncoder.encode(utilisateur.getMotDePasse())); // Encode le mot de passe
-    utilisateur.setActive(true); // Active l'utilisateur
+    
+    utilisateur.setMotDePasse(passwordEncoder.encode(utilisateur.getMotDePasse()));
+    utilisateur.setActive(false); // Compte désactivé par défaut
+    utilisateur.setRole(Role.USER);
+    
     Utilisateur saved = utilisateurRepository.save(utilisateur);
-    String jwt = jwtService.generateToken(saved);
-    String cookieValue = "jwt=" + jwt + "; Path=/; Max-Age=7200; HttpOnly; SameSite=Lax";
-    response.addHeader("Set-Cookie", cookieValue);
-    return ResponseEntity.ok(saved);
+    
+    // TODO: Envoyer email de confirmation ici
+    // Pour l'instant, on simule l'envoi
+    System.out.println("📧 Email de confirmation envoyé à : " + saved.getEmail());
+    
+    response.put("success", true);
+    response.put("message", "Inscription réussie. Veuillez vérifier votre email pour activer votre compte.");
+    response.put("data", Map.of(
+        "id", saved.getId(),
+        "nom", saved.getNom(),
+        "prenom", saved.getPrenom(),
+        "email", saved.getEmail(),
+        "active", saved.isActive()
+    ));
+    
+    return ResponseEntity.status(HttpStatus.CREATED).body(response);
 }
 
     @PostMapping("/login")
@@ -192,6 +215,29 @@ public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletRes
 
         response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/activate/{email}")
+    public ResponseEntity<Map<String, Object>> activateAccount(@PathVariable String email) {
+        Map<String, Object> response = new HashMap<>();
+        
+        Utilisateur utilisateur = utilisateurRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur non trouvé"));
+        
+        if (utilisateur.isActive()) {
+            response.put("success", false);
+            response.put("message", "Ce compte est déjà activé");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+        
+        utilisateur.setActive(true);
+        utilisateur.setDateAcceptationCGU(java.time.LocalDateTime.now());
+        utilisateurRepository.save(utilisateur);
+        
+        response.put("success", true);
+        response.put("message", "Compte activé avec succès. Vous pouvez maintenant vous connecter.");
+        
+        return ResponseEntity.ok(response);
     }
 
 }

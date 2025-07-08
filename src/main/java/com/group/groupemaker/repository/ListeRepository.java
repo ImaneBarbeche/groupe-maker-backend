@@ -9,6 +9,5 @@ import com.group.groupemaker.model.Utilisateur;
 public interface ListeRepository extends JpaRepository<Liste, Long> {
     List<Liste> findByUtilisateur(Utilisateur utilisateur);
     boolean existsBySlug(String slug);
-
-
+    long countByUtilisateur(Utilisateur utilisateur);
 }
