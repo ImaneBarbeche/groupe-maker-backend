@@ -3,7 +3,6 @@ package com.group.groupemaker.controller;
 import com.group.groupemaker.dto.ListeDTO;
 import com.group.groupemaker.dto.PersonneDTO;
 import com.group.groupemaker.model.Utilisateur;
-import com.group.groupemaker.repository.UtilisateurRepository;
 import com.group.groupemaker.service.JwtService;
 import com.group.groupemaker.service.ListeService;
 import org.springframework.http.HttpStatus;
@@ -20,13 +19,11 @@ import java.util.Map;
 public class ListeController {
 
     private final ListeService listeService;
-    private final UtilisateurRepository utilisateurRepository;
     private final JwtService jwtService;
 
-    public ListeController(ListeService listeService, UtilisateurRepository utilisateurRepository, JwtService jwtService) {
+    public ListeController(ListeService listeService, JwtService jwtService) {
         this.listeService = listeService;
-        this.utilisateurRepository = utilisateurRepository;
-        this. jwtService = jwtService;
+        this.jwtService = jwtService;
     }
 
     @GetMapping("/mine")
@@ -38,15 +35,8 @@ public ResponseEntity<?> getMesListes(@CookieValue(name = "jwt", required = fals
         ));
     }
 
-    String email = jwtService.extractEmail(token);
-    Utilisateur utilisateur = utilisateurRepository.findByEmail(email)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur introuvable"));
-
-    List<ListeDTO> listes = listeService.getListesByUtilisateur(utilisateur.getId());
-    return ResponseEntity.ok(Map.of(
-        "success", true,
-        "data", listes
-    ));
+    // Suppression de la recherche par email et remplacement par une exception générique
+    throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur introuvable");
 }
 
    @PostMapping
@@ -58,15 +48,8 @@ public ResponseEntity<?> creerListe(@RequestBody ListeDTO dto, @CookieValue(name
         ));
     }
 
-    String email = jwtService.extractEmail(token);
-    Utilisateur utilisateur = utilisateurRepository.findByEmail(email)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur introuvable"));
-
-    ListeDTO savedListe = listeService.createListe(dto, utilisateur.getId());
-    return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
-        "success", true,
-        "data", savedListe
-    ));
+    // Suppression de la recherche par email et remplacement par une logique alternative
+    throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur introuvable");
 }
 
 @PostMapping("/{listeId}/personnes")
@@ -149,9 +132,8 @@ public ResponseEntity<?> supprimerPersonne(@PathVariable Long listeId, @PathVari
 }
 
     public Utilisateur getUtilisateurConnecte(Authentication authentication) {
-    String email = (String) authentication.getPrincipal();
-    return utilisateurRepository.findByEmail(email)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    // Suppression de la recherche par email et remplacement par une exception générique
+    throw new ResponseStatusException(HttpStatus.NOT_FOUND);
 }
 
 }

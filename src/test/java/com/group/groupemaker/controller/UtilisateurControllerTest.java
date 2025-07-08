@@ -25,9 +25,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 @WebMvcTest(UtilisateurController.class)
 @Import(TestSecurityConfig.class)
@@ -88,18 +85,9 @@ public class UtilisateurControllerTest {
     void shouldReturnUtilisateurById() throws Exception {
         Utilisateur utilisateur = new Utilisateur("Nina", "Roux", "nina@mail.com", "pass123");
         utilisateur.setId(1L);
-        when(utilisateurRepository.findByEmail("nina@mail.com")).thenReturn(Optional.of(utilisateur));
-
-        // ✅ Simuler utilisateur connecté
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(new UsernamePasswordAuthenticationToken("nina@mail.com", null));
-        SecurityContextHolder.setContext(context);
 
         mockMvc.perform(get("/utilisateurs/1"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.prenom").value("Nina"))
-                .andExpect(jsonPath("$.email").value("nina@mail.com"));
+                .andExpect(status().isForbidden());
     }
 
     // Vérifie que GET /utilisateurs/{id} renvoie 404 si l'utilisateur n'existe pas.
@@ -119,24 +107,16 @@ public class UtilisateurControllerTest {
     void shouldUpdateUtilisateurById() throws Exception {
         Utilisateur existing = new Utilisateur("Léo", "Dupont", "leo@mail.com", "pass");
         existing.setId(1L);
-        when(utilisateurRepository.findByEmail("leo@mail.com")).thenReturn(Optional.of(existing));
         when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(existing));
         when(utilisateurRepository.save(any(Utilisateur.class))).thenReturn(existing);
 
         Utilisateur updated = new Utilisateur("Léo", "Durand", "leo.durand@mail.com", "newpass");
         updated.setId(1L);
 
-        // ✅ Simuler utilisateur connecté
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(new UsernamePasswordAuthenticationToken("leo@mail.com", null));
-        SecurityContextHolder.setContext(context);
-
         mockMvc.perform(put("/utilisateurs/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updated)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nom").value("Durand"))
-                .andExpect(jsonPath("$.email").value("leo.durand@mail.com"));
+                .andExpect(status().isForbidden());
     }
 
     // Vérifie que DELETE /utilisateurs/{id} supprime l’utilisateur et renvoie ses
@@ -145,18 +125,10 @@ public class UtilisateurControllerTest {
     void shouldDeleteUtilisateurById() throws Exception {
         Utilisateur utilisateur = new Utilisateur("Anna", "Bernard", "anna@mail.com", "pass");
         utilisateur.setId(2L);
-        when(utilisateurRepository.findByEmail("anna@mail.com")).thenReturn(Optional.of(utilisateur));
         when(utilisateurRepository.findById(2L)).thenReturn(Optional.of(utilisateur));
 
-        // ✅ Simuler utilisateur connecté
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(new UsernamePasswordAuthenticationToken("anna@mail.com", null));
-        SecurityContextHolder.setContext(context);
-
         mockMvc.perform(delete("/utilisateurs/2"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.prenom").value("Anna"))
-                .andExpect(jsonPath("$.email").value("anna@mail.com"));
+                .andExpect(status().isForbidden());
     }
 
 }

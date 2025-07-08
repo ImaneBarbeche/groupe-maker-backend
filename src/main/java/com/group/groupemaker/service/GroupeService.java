@@ -12,7 +12,9 @@ import com.group.groupemaker.repository.PersonneRepository;
 import com.group.groupemaker.repository.HistoriqueRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,7 +26,7 @@ public class GroupeService {
     private final GroupeAleatoireService groupeAleatoireService;
     private final HistoriqueRepository historiqueRepository;
 
-    public GroupeService(GroupeRepository groupeRepository, ListeRepository listeRepository, 
+    public GroupeService(GroupeRepository groupeRepository, ListeRepository listeRepository,
                         PersonneRepository personneRepository, GroupeAleatoireService groupeAleatoireService,
                         HistoriqueRepository historiqueRepository) {
         this.groupeRepository = groupeRepository;
@@ -80,6 +82,49 @@ public class GroupeService {
 
     public void supprimerGroupe(Long id) {
         groupeRepository.deleteById(id);
+    }
+
+    public List<GroupeDTO> genererGroupesAleatoires(Long listeId, int nombreGroupes, Map<String, Boolean> criteres) {
+        Liste liste = listeRepository.findById(listeId)
+                .orElseThrow(() -> new RuntimeException("Liste non trouvée"));
+
+        // Conversion des critères en CriteresGeneration
+        GroupeAleatoireService.CriteresGeneration criteresGeneration = new GroupeAleatoireService.CriteresGeneration();
+        criteresGeneration.setMixerGenres(criteres.getOrDefault("mixerGenres", false));
+        criteresGeneration.setMixerAges(criteres.getOrDefault("mixerAges", false));
+        criteresGeneration.setMixerNiveauxTechniques(criteres.getOrDefault("mixerNiveauxTechniques", false));
+        criteresGeneration.setMixerAisanceFrancais(criteres.getOrDefault("mixerAisanceFrancais", false));
+        criteresGeneration.setMixerAnciensDWWM(criteres.getOrDefault("mixerAnciensDWWM", false));
+        criteresGeneration.setMixerProfils(criteres.getOrDefault("mixerProfils", false));
+
+        // Génération des groupes aléatoires
+        List<List<Personne>> groupesGeneres = groupeAleatoireService.genererGroupesAleatoires(
+                liste.getPersonnes(), nombreGroupes, criteresGeneration, liste);
+
+        // Initialisation de la liste des DTO
+        List<GroupeDTO> groupesDTO = new ArrayList<>();
+
+        // Création des groupes en base
+        groupesGeneres.forEach(personnes -> {
+            Groupe groupe = new Groupe();
+            groupe.setNom("Groupe " + (groupesDTO.size() + 1));
+            groupe.setListe(liste);
+            groupe.setPersonnes(personnes);
+            groupeRepository.save(groupe);
+
+            groupesDTO.add(new GroupeDTO(groupe.getId(), groupe.getNom(), groupe.getCriteres(), groupe.getDateCreation(), listeId));
+        });
+
+        // Enregistrement dans l'historique
+        Historique historique = new Historique();
+        historique.setListe(liste);
+        historique.setNomListe(liste.getNom());
+        historique.setGroupes(groupesDTO.stream()
+                .map(dto -> groupeRepository.findById(dto.getId()).orElse(null))
+                .collect(Collectors.toList()));
+        historiqueRepository.save(historique);
+
+        return groupesDTO;
     }
 }
 

@@ -77,13 +77,11 @@ public class Liste {
     }
 
     public void setDescription(String description) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setDescription'");
+        this.description = description;
     }
 
     public void setSlug(String slug) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setSlug'");
+        this.slug = slug;
     }
 
 }
